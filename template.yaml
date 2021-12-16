@@ -1,14 +1,14 @@
-apiVersion: backstage.io/v1beta2
+apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: react-ssr-template
-  title: React Static Site
+  name: static-site-react
+  title: React Static Site Generator
   description: Create a website powered with Next.js
   tags:
     - recommended
     - react
 spec:
-  owner: bduckett@deloitte.com
+  owner: bduckett@deloitte.com  
   type: website
   parameters:
     - title: Provide some simple information
@@ -43,6 +43,7 @@ spec:
           ui:options:
             allowedHosts:
               - github.com
+              - gitlab.com
   steps:
     - id: template
       name: Fetch Skeleton + Template
@@ -52,26 +53,26 @@ spec:
         copyWithoutRender:
           - .github/workflows/*
         values:
-          component_id: '{{ parameters.component_id }}'
-          description: '{{ parameters.description }}'
-          destination: '{{ parseRepoUrl parameters.repoUrl }}'
-          owner: '{{ parameters.owner }}'
+          component_id: ${{ parameters.component_id }}
+          description: ${{ parameters.description }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          owner: ${{ parameters.owner }}
 
     - id: publish
       name: Publish
       action: publish:github
       input:
-        allowedHosts: ['github.com']
-        description: 'This is {{ parameters.component_id }}'
-        repoUrl: '{{ parameters.repoUrl }}'
+        allowedHosts: ["github.com", "gitlab.com"]
+        description: This is ${{ parameters.component_id }}
+        repoUrl: ${{ parameters.repoUrl }}
 
     - id: register
       name: Register
       action: catalog:register
       input:
-        repoContentsUrl: '{{ steps.publish.output.repoContentsUrl }}'
-        catalogInfoPath: '/catalog-info.yaml'
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
 
   output:
-    remoteUrl: '{{ steps.publish.output.remoteUrl }}'
-    entityRef: '{{ steps.register.output.entityRef }}'
+    remoteUrl: ${{ steps.publish.output.remoteUrl }}
+    entityRef: ${{ steps.register.output.entityRef }}
